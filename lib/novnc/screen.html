@@ -1,0 +1,21 @@
+<html>
+	<head>
+		<title>susi</title>
+		<script type="module">
+			import RFB from './core/rfb.js';
+			let host = '###HOST###';
+			let port = '###PORT###';
+
+			let rfb = new RFB(
+				document.getElementById('screen'),
+				'ws://' + host + ':' + port,
+				{});
+		</script>
+	</head>
+	<body>
+		<div>
+			<a href="###TOKEN###.close.html">close</a>
+		</div>
+		<div id="screen"></div>
+	</body>
+</html>
