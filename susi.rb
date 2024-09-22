@@ -50,6 +50,16 @@ elsif ARGV[0] == 'vnc' &&
   vm_name = ARGV[2]
   Susi::VNC.open(vm_name)
 
+# open SSH
+elsif ARGV[0] == 'ssh' &&
+    ARGV[1].is_a?(String)
+  vm_name = ARGV[2]
+  Susi::SSH.open(vm_name)
+
+# download Debian netinstall ISO
+elsif ARGV[0] == 'iso' && ARGV[1] == 'download'
+  Susi::Disk.download_debian_netinstall
+
 else
   puts <<-EOF
 Invalid command
@@ -73,6 +83,9 @@ Usage:
 
   Open VNC
   susi vnc <vm_name>
+
+  Download Debian netinstall ISO
+  susi iso download
 
 susi (v0.1.0) - Simple User System Interface
 
