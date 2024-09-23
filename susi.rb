@@ -53,7 +53,7 @@ elsif ARGV[0] == 'vnc' &&
 # open SSH
 elsif ARGV[0] == 'ssh' &&
     ARGV[1].is_a?(String)
-  vm_name = ARGV[2]
+  vm_name = ARGV[1]
   Susi::SSH.open(vm_name)
 
 # download Debian netinstall ISO
@@ -84,6 +84,9 @@ Usage:
   Open VNC
   susi vnc <vm_name>
 
+  Open SSH
+  susi ssh <vm_name>
+
   Download Debian netinstall ISO
   susi iso download
 
@@ -94,5 +97,4 @@ contact: oss@bovi.li
 www:     https://github.com/bovi/susi
 EOF
 
-  exit 1
 end
