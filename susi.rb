@@ -74,6 +74,9 @@ Usage:
   Start a VM
   susi vm start <vm_name>
 
+  Install a VM
+  susi vm install <vm_name> <iso>
+
   Quit a VM
   susi vm quit <vm_name>
 
@@ -90,11 +93,13 @@ Usage:
   Download Debian netinstall ISO
   susi iso download
 
-susi (v0.1.0) - Simple User System Interface
+susi (v#{Susi::VERSION}) - Simple User System Interface
 
 author:  Daniel Bovensiepen
 contact: oss@bovi.li
 www:     https://github.com/bovi/susi
 EOF
+
+exit 1
 
 end
