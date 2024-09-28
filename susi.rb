@@ -2,8 +2,19 @@
 
 require_relative 'lib/susi.rb'
 
+if ARGV[0] == 'init'
+  Susi::init
+
+elsif ARGV[0] == 'start'
+  Susi::start
+
+elsif ARGV[0] == 'rm'
+  # quit vm and remove disk
+  Susi::VM.quit(Susi::current_vm_name)
+  Susi::rm
+
 # create a disk
-if ARGV[0] == 'disk' && ARGV[1] == 'create' &&
+elsif ARGV[0] == 'disk' && ARGV[1] == 'create' &&
     ARGV[2].is_a?(String) && ARGV[3].to_i > 0
   disk_name = ARGV[2]
   disk_size = ARGV[3].to_i
@@ -51,10 +62,13 @@ elsif ARGV[0] == 'vnc' &&
   Susi::VNC.open(vm_name)
 
 # open SSH
-elsif ARGV[0] == 'ssh' &&
-    ARGV[1].is_a?(String)
-  vm_name = ARGV[1]
-  Susi::SSH.open(vm_name)
+elsif ARGV[0] == 'ssh'
+  if ARGV[1].is_a?(String)
+    vm_name = ARGV[1]
+    Susi::SSH.open(vm_name)
+  else
+    Susi::SSH.open(Susi::current_vm_name)
+  end
 
 # download Debian netinstall ISO
 elsif ARGV[0] == 'iso' && ARGV[1] == 'download'
@@ -65,6 +79,15 @@ else
 Invalid command
 
 Usage: 
+  Init susi setting
+  susi init
+
+  Start VM from current folder 
+  susi start
+
+  Clean up disks
+  susi rm
+
   Create a VM disk
   susi disk create <disk_name> <disk_size>
 

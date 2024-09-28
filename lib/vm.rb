@@ -1,5 +1,16 @@
 module Susi
   class VM
+    def self.running?(name)
+      ps = `ps aux | grep qemu-system-x86_64`
+      ps.split("\n").each do |line|
+        next unless line.match /\-name/
+        m = line.match(/-name (\w+)/)
+        n = m[1]
+        return true if n == name
+      end
+      return false
+    end
+
     def initialize(name)
       @name = name
       @qmp_port = nil
@@ -58,6 +69,11 @@ module Susi
         end
         port.to_i
       end
+    end
+
+    def ip
+      ip = Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }
+      ip.ip_address
     end
 
     def qmp_port
@@ -125,7 +141,7 @@ module Susi
       puts cmd.join(" ")
       system(cmd.join(" "))
 
-      QMP.new(qmp_port)
+      QMP.new(qmp_port).close
     end
 
     def self.ls

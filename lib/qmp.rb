@@ -8,20 +8,17 @@ module Susi
       @server = TCPSocket.new('localhost', @port)
 
       resp = JSON.parse(@server.gets)
-      if resp["QMP"]["version"]["qemu"]["major"] == 9
-        #puts "QEMU version 9 detected"
-      else
-        puts "QEMU version not supported"
-        exit 1
+      unless resp["QMP"]["version"]["qemu"]["major"] == 9
+        server.close
+        raise "QEMU version not supported"
       end
 
+      # handshake to initialize QMP
       @server.puts('{"execute":"qmp_capabilities"}')
       resp = JSON.parse(@server.gets)
-      if resp["return"] == {}
-        #puts "Connected to QMP socket"
-      else
-        puts "Failed to connect to QMP socket"
-        exit 1
+      unless resp["return"] == {}
+        server.close
+        raise "Failed to connect to QMP socket"
       end
 
       if block_given?
