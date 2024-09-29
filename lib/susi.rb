@@ -10,7 +10,6 @@ require 'yaml'
 require 'securerandom'
 
 module Susi
-  VERSION = '0.0.1'
   CONFIG_FILE = ".susi.yml"
   SUSI_DIR = "#{ENV['HOME']}/.susi"
   TEMPLATE_DIR = "#{SUSI_DIR}/templates"

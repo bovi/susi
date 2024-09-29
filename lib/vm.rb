@@ -117,7 +117,7 @@ module Susi
 
       cmd = []
 
-      cmd << "~/susi/docs/qemu/build/qemu-system-x86_64"
+      cmd << "qemu-system-x86_64"
 
       # general setup
       cmd << "-name #{name}"

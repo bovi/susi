@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-require_relative 'lib/susi.rb'
+require 'susi'
+require 'version'
 
 if ARGV[0] == 'init'
   Susi::init
