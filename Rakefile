@@ -1,3 +1,5 @@
+require_relative 'lib/version'
+
 # create standard task to execute the tests
 task :default => :test
 
@@ -13,10 +15,11 @@ task :clean do
   rm_rf Dir['susi-qemu-*.gem'] 
 end
 
-task :build do
+task :build => :clean do
   sh "gem build susi.gemspec"
 end
 
-task :push do
-  sh "gem push"
+task :push => :build do
+  sh "gem push susi-qemu-#{Susi::VERSION}.gem"
+  Rake::Task[:clean].execute
 end

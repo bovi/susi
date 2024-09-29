@@ -15,4 +15,6 @@ Gem::Specification.new do |s|
     'source_code_uri' => 'https://github.com/bovi/susi'
   }
   s.add_dependency 'net-ssh', '~> 7.2.0'
+  s.add_dependency 'ed25519', '~> 1.3.0'
+  s.add_dependency 'bcrypt_pbkdf', '~> 1.1.1'
 end
