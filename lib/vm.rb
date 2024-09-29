@@ -1,3 +1,5 @@
+require_relative 'output'
+
 module Susi
   class VM
     def self.running?(name)
@@ -13,60 +15,78 @@ module Susi
 
     def initialize(name)
       @name = name
+      @qmp = nil
       @qmp_port = nil
       @vnc_port = nil
       @ssh_port = nil
 
+      Susi::debug "Searching for VM #{name}"
+
       ps = `ps aux | grep qemu-system-x86_64`
+      Susi::debug ps
       ps.split("\n").each do |line|
         next unless line.match /\-name/
-        m = line.match(/-name (\w+)/)
+        m = line.match(/-name ([a-zA-Z0-9\-_\.]+)\s/)
+        Susi::debug "match: #{m[1]}"
         n = m[1]
         next unless n == @name
+        Susi::debug "Found VM #{n}"
 
         m = line.match(/-qmp tcp:localhost:(\d+)/)
         @qmp_port = m[1].to_i
+        Susi::debug "Found QMP port #{@qmp_port}"
+      end
+      @qmp = QMP.new(@qmp_port)
+
+      if block_given?
+        yield(self)
+
+        @qmp.close
       end
     end
 
     def quit
-      QMP.new(@qmp_port) { |q| q.quit }
+      #QMP.new(@qmp_port) { |q| q.quit }
+      @qmp.quit
     end
 
     def disk
       d = ''
-      QMP.new(@qmp_port) { |q| d = q.execute("query-block")[0]['inserted']['file'] }
+      #QMP.new(@qmp_port) { |q| d = q.execute("query-block")[0]['inserted']['file'] }
+      d = @qmp.execute("query-block")[0]['inserted']['file']
       d
     end
 
     def vnc_port
       @vnc_port ||= begin
         port = -1
-        QMP.new(@qmp_port) { |q| port = q.execute("query-vnc")['service'] }
+        #QMP.new(@qmp_port) { |q| port = q.execute("query-vnc")['service'] }
+        port = @qmp.execute("query-vnc")['service']
         port.to_i
       end
     end
 
     def vnc_www_port
-      vnc_port - 5900 + 5800
+      vnc_port - 100
     end
 
     def vnc_websocket_port
-      vnc_port - 5900 + 5700
+      vnc_port - 200
     end
 
     def ssh_port
       @ssh_port ||= begin
         port = -1
-        QMP.new(@qmp_port) do |q|
-          resp = q.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
+        #QMP.new(@qmp_port) do |q|
+          #resp = q.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
+          resp = @qmp.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
           resp = resp.split("\r\n")[2].split
           src_port = resp[3].to_i
           dst_port = resp[5].to_i
           if dst_port == 22
             port = src_port
           end
-        end
+        #end
         port.to_i
       end
     end
@@ -106,14 +126,10 @@ module Susi
       qmp_port = self.get_free_port(4000, 4099)
       ssh_port = self.get_free_port(2000, 2099)
       vnc_port = self.get_free_port(5900, 5999)
-      vnc_www_port = 5800 + vnc_port - 5900
-      vnc_websocket_port = 5700 + vnc_port - 5900
+      vnc_www_port = vnc_port - 100
+      vnc_websocket_port = vnc_port - 200
 
-      puts "QMP Port: #{qmp_port}"
-      puts "SSH Port: #{ssh_port}"
-      puts "VNC Port: #{vnc_port}"
-      puts "VNC WWW Port: #{vnc_www_port}"
-      puts "VNC WebSocket Port: #{vnc_websocket_port}"
+      Susi::debug "Starting VM #{name} with QMP on port #{qmp_port}, VNC on port #{vnc_port}, SSH on port #{ssh_port}"
 
       cmd = []
 
@@ -138,8 +154,9 @@ module Susi
         cmd << "-cdrom #{cdrom}"
       end
 
-      puts cmd.join(" ")
-      system(cmd.join(" "))
+      cmd = cmd.join(" ")
+      Susi::debug cmd
+      system(cmd)
 
       QMP.new(qmp_port).close
     end
@@ -152,19 +169,20 @@ module Susi
         # get VM access
         m = line.match(/-name (\w+)/)
         n = m[1]
-        vm = VM.new(n)
+        VM.new(n) do |vm|
+          # get local device name or IP
+          ip = vm.ip
 
-        # get local device name or IP
-        ip = Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }
-
-        puts <<-EOF
+          puts <<-EOF
 VM: #{n}
   - Disk: #{vm.disk}
   - QMP: #{vm.qmp_port}
-  - VNC: vnc://#{ip.ip_address}:#{vm.vnc_port}
-  - Screen: http://#{ip.ip_address}:#{vm.vnc_www_port}/
-  - SSH: ssh -p #{vm.ssh_port} dabo@#{ip.ip_address}
+  - VNC: vnc://#{ip}:#{vm.vnc_port}
+  - Screen: http://#{ip}:#{vm.vnc_www_port}/
+  - Websocket: ws://#{ip}:#{vm.vnc_websocket_port}/
+  - SSH: ssh -p #{vm.ssh_port} dabo@#{ip}
 EOF
+        end
       end
     end
   end

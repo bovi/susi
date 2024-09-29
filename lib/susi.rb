@@ -5,6 +5,7 @@ require_relative 'vm'
 require_relative 'ssh'
 require_relative 'vnc'
 require_relative 'disk'
+require_relative 'output'
 
 require 'yaml'
 require 'securerandom'
@@ -59,15 +60,15 @@ YAML
     # check if disk exist, if not clone it
     disk_name = "#{DISK_DIR}/#{id}"
     if !File.exist?("#{disk_name}.qcow2")
-      puts "Disk not found, cloning..."
-      Susi::Disk.clone(disk_template, disk_name)
+      Susi::debug "Disk not found, cloning..."
+      Disk.clone(disk_template, disk_name)
 
-      Susi::VM.start(name, disk_name)
+      VM.start(name, disk_name)
 
       # SSH into VM and set hostname
-      Susi::SSH.set_hostname(name)
+      SSH.set_hostname(name)
     else
-      Susi::VM.start(name, disk_name)
+      VM.start(name, disk_name)
     end
   end
 
@@ -83,7 +84,7 @@ YAML
 
     if File.exist?(disk_name)
       # verbose remove file
-      puts "removing #{disk_name}"
+      Susi::debug "removing #{disk_name}"
       File.delete(disk_name)
     end
   end

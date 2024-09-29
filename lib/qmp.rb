@@ -1,9 +1,13 @@
 require 'socket'
 require 'json'
 
+require_relative 'output'
+
 module Susi
   class QMP
     def initialize(port)
+      Susi::debug "Connecting to QMP on port #{port}"
+
       @port = port
       @server = TCPSocket.new('localhost', @port)
 
@@ -47,9 +51,11 @@ module Susi
 
     def quit
       @server.puts('{"execute":"quit"}')
+      close
     end
 
     def close
+      Susi::debug "Closing QMP connection"
       @server.close
     end
   end

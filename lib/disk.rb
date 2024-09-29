@@ -1,3 +1,5 @@
+require_relative 'output'
+
 module Susi
   class Disk
     DEFAULT_IMG = "debian-12.7.0-amd64-netinst.iso"
@@ -16,7 +18,7 @@ module Susi
 
       url = "https://mirrors.tuna.tsinghua.edu.cn/debian-cd/current/amd64/iso-cd/#{DEFAULT_IMG}"
       
-      puts "Downloading Debian netinstall ISO..."
+      Susi::debug "Downloading Debian netinstall ISO..."
       
       begin
         URI.open(url) do |remote_file|
@@ -24,13 +26,13 @@ module Susi
             local_file.write(remote_file.read)
           end
         end
-        puts "Download completed successfully."
+        Susi::debug "Download completed successfully."
       rescue OpenURI::HTTPError => e
-        puts "Error downloading the ISO: #{e.message}"
+        Susi::debug "Error downloading the ISO: #{e.message}"
       rescue SocketError => e
-        puts "Network error: #{e.message}"
+        Susi::debug "Network error: #{e.message}"
       rescue => e
-        puts "An unexpected error occurred: #{e.message}"
+        Susi::debug "An unexpected error occurred: #{e.message}"
       end
     end
 

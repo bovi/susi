@@ -57,10 +57,13 @@ elsif ARGV[0] == 'ls'
   Susi::VM.ls
 
 # open VNC
-elsif ARGV[0] == 'vnc' &&
-    ARGV[1].is_a?(String)
-  vm_name = ARGV[2]
-  Susi::VNC.open(vm_name)
+elsif ARGV[0] == 'vnc'
+  if ARGV[1].is_a?(String)
+    vm_name = ARGV[1]
+    Susi::VNC.open(vm_name)
+  else
+    Susi::VNC.open(Susi::current_vm_name)
+  end
 
 # open SSH
 elsif ARGV[0] == 'ssh'
@@ -109,9 +112,11 @@ Usage:
   susi vm ls
 
   Open VNC
+  susi vnc
   susi vnc <vm_name>
 
   Open SSH
+  susi ssh
   susi ssh <vm_name>
 
   Download Debian netinstall ISO

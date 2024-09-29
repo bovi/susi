@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.description = 'Config, manage, and maintain multiple QEMU instances for your projects'
   s.authors     = ['Daniel Bovensiepen']
   s.email       = 'oss@bovi.li'
-  s.files       = Dir['lib/*.rb'] + Dir['novnc/**/*']
+  s.files       = Dir['lib/*.rb'] + Dir['lib/novnc/**/*.{html,js}']
   s.executables << 'susi'
   s.homepage    = 'https://github.com/bovi/susi'
   s.license     = 'MIT'
