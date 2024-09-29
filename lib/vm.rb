@@ -122,7 +122,7 @@ module Susi
       raise "No free port found in range #{start_port}..#{end_port}"
     end
 
-    def self.start(name, disk, cdrom: nil)
+    def self.start(name, disk, cdrom: nil, usb: nil)
       qmp_port = self.get_free_port(4000, 4099)
       ssh_port = self.get_free_port(2000, 2099)
       vnc_port = self.get_free_port(5900, 5999)
@@ -133,12 +133,13 @@ module Susi
 
       cmd = []
 
-      cmd << "qemu-system-x86_64"
+      cmd << "sudo"
+      cmd << `which qemu-system-x86_64`.strip
 
       # general setup
       cmd << "-name #{name}"
       cmd << "-m 2048"
-      cmd << "-hda #{disk}.qcow2"
+      cmd << "-hda #{File.expand_path(disk)}.qcow2"
       cmd << "-daemonize"
       cmd << "-enable-kvm"
 
@@ -152,6 +153,14 @@ module Susi
       # cdrom for installation
       if cdrom
         cmd << "-cdrom #{cdrom}"
+      end
+
+      if usb
+        cmd << "-device qemu-xhci"
+        usb.each do |usbstr|
+          vendor, product = usbstr.split(':')
+          cmd << "-device usb-host,vendorid=0x#{vendor},productid=0x#{product}"
+        end
       end
 
       cmd = cmd.join(" ")

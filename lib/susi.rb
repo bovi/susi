@@ -50,6 +50,7 @@ YAML
     config = YAML.load_file(CONFIG_FILE)
     id = config['id']
     name = config['name'] || Dir.pwd.split('/').last
+    usb = config['usb']
     disk_template = "#{TEMPLATE_DIR}/#{config['template']}"
 
     # check if vm is already running
@@ -63,12 +64,12 @@ YAML
       Susi::debug "Disk not found, cloning..."
       Disk.clone(disk_template, disk_name)
 
-      VM.start(name, disk_name)
+      VM.start(name, disk_name, usb: usb)
 
       # SSH into VM and set hostname
       SSH.set_hostname(name)
     else
-      VM.start(name, disk_name)
+      VM.start(name, disk_name, usb: usb)
     end
   end
 

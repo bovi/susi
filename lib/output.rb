@@ -1,5 +1,5 @@
 module Susi
-  DEBUG = false
+  DEBUG = true
 
   def self.debug(msg)
     puts msg if DEBUG
