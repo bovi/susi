@@ -15,14 +15,17 @@ To get started with this software, you need to follow these steps:
 
 1. Install QEMU:
    Ensure you have QEMU version 9 or higher installed on your system. You can check your QEMU version with:
-   ```
+
+   ```sh
    qemu-system-x86_64 --version
    ```
+
    If you need to update or install QEMU, please refer to your operating system's package manager or the [official QEMU website](https://www.qemu.org/download/).
 
 2. Install susi via Rubygems:
    You can install the susi-qemu gem using the following command:
-   ```
+
+   ```sh
    gem install susi-qemu
    ```
 
@@ -36,16 +39,20 @@ Here's how to use susi:
 
 1. Initialize a project:
    Navigate to your project directory and run:
-   ```
+
+   ```sh
    susi init
    ```
+
    This creates a `.susi.yml` configuration file in your project directory.
 
 2. Start a VM:
    Once you have a `.susi.yml` file, you can start a VM with:
-   ```
+
+   ```sh
    susi start
    ```
+
    This command uses the default QCOW2 image located at `~/.susi/templates/default.qcow2`.
 
 3. Access the VM:
@@ -53,12 +60,16 @@ Here's how to use susi:
    - Via VNC: `susi vnc`
 
 4. Stop the VM:
-   ```
+   To stop a running VM, use the following command:
+
+   ```sh
    susi stop <vm_name>
    ```
 
 5. List running VMs:
-   ```
+   To list all running VMs, use the following command:
+
+   ```sh
    susi ls
    ```
 
@@ -66,7 +77,7 @@ Note: The standard susi config expects a default QCOW2 image at `~/.susi/templat
 
 ## VNC Access Example
 
-To access a VM via VNC, use the following command:
+To access a VM via VNC over the web, use the following command:
 
 ```sh
 $ susi vnc
@@ -75,9 +86,6 @@ $ susi vnc
 ```
 
 ![VNC Access Example](docs/vnc.png)
-
-The image above demonstrates the VNC access feature of our QEMU management software. It allows you to view and interact with the graphical interface of your virtual machines remotely.
-
 
 ## SSH Access Example
 
