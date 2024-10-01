@@ -71,7 +71,7 @@ To access a VM via VNC, use the following command:
 ```sh
 $ susi vnc
 [2024-10-01 23:34:12 +0800] VNC screen: http://192.168.1.10:5800/MNVOSQDK.html
-[2024-10-01 23:34:16 +0800] Access by: 192.168.101.21
+[2024-10-01 23:34:16 +0800] Access by: 192.168.1.11
 ```
 
 ![VNC Access Example](docs/vnc.png)
