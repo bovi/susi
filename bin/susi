@@ -1,11 +1,19 @@
 #!/usr/bin/env ruby
 
+if File.exist?(File.expand_path('../susi.gemspec', __dir__))
+  puts "Running in development mode"
+  module Susi
+    DEBUG = true
+  end
+  $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+end
+
 require 'susi'
 require 'version'
 require 'optparse'
 
 def print_usage
-  puts <<-EOF
+  Susi::info <<-EOF
 Usage: 
   Init susi setting
   susi init
@@ -61,7 +69,7 @@ subcommands = %w[init start rm disk vm ls vnc ssh iso]
 global = OptionParser.new do |opts|
   opts.banner = "Usage: susi [options] [subcommand [options]]"
   opts.on("-h", "--help", "Prints this help") do
-    puts opts
+    Susi::info opts
     print_usage
   end
 end
@@ -75,6 +83,11 @@ when "init"
   Susi::init
 when "start"
   Susi::start
+when "stop", "shutdown"
+  vm_name = ARGV.shift || Susi::current_vm_name
+  Susi::VM.new(vm_name) do |vm|
+    vm.shutdown
+  end
 when "rm"
   Susi::VM.quit(Susi::current_vm_name)
   Susi::rm
@@ -86,7 +99,7 @@ when "disk"
     if disk_name && disk_size.to_i > 0
       Susi::Disk.create(disk_name, disk_size.to_i)
     else
-      puts "Invalid disk create command"
+      Susi::info "Invalid disk create command"
       print_usage
     end
   when "clone"
@@ -96,11 +109,11 @@ when "disk"
         !File.exist?("#{new_disk_name}.qcow2")
       Susi::Disk.clone(disk_name, new_disk_name)
     else
-      puts "Invalid disk clone command"
+      Susi::info "Invalid disk clone command"
       print_usage
     end
   else
-    puts "Invalid disk command"
+    Susi::info "Invalid disk command"
     print_usage
   end
 when "vm"
@@ -111,7 +124,7 @@ when "vm"
     if vm_name && File.exist?("#{vm_name}.qcow2")
       Susi::VM.start(vm_name, vm_name)
     else
-      puts "Invalid vm start command"
+      Susi::info "Invalid vm start command"
       print_usage
     end
   when "install"
@@ -119,7 +132,7 @@ when "vm"
     if vm_name && File.exist?("#{vm_name}.qcow2") && iso && File.exist?(iso)
       Susi::VM.install(vm_name, vm_name, iso)
     else
-      puts "Invalid vm install command"
+      Susi::info "Invalid vm install command"
       print_usage
     end
   when "quit"
@@ -127,13 +140,13 @@ when "vm"
     if vm_name
       Susi::VM.quit(vm_name)
     else
-      puts "Invalid vm quit command"
+      Susi::info "Invalid vm quit command"
       print_usage
     end
   when "ls"
     Susi::VM.ls
   else
-    puts "Invalid vm command"
+    Susi::info "Invalid vm command"
     print_usage
   end
 when "ls"
@@ -157,10 +170,10 @@ when "iso"
   if iso_command == "download"
     Susi::Disk.download_debian_netinstall
   else
-    puts "Invalid iso command"
+    Susi::info "Invalid iso command"
     print_usage
   end
 else
-  puts "Invalid command"
+  Susi::info "Invalid command"
   print_usage
 end

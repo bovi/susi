@@ -45,8 +45,13 @@ module Susi
       end
     end
 
+    def shutdown
+      Susi::debug "Initiating shutdown for VM #{@name}"
+      @qmp.execute("system_powerdown")
+    end
+
     def quit
-      #QMP.new(@qmp_port) { |q| q.quit }
+      Susi::debug "Quitting QMP for VM #{@name}"
       @qmp.quit
     end
 
@@ -122,7 +127,7 @@ module Susi
       raise "No free port found in range #{start_port}..#{end_port}"
     end
 
-    def self.start(name, disk, cdrom: nil, usb: nil)
+    def self.start(name, disk, cdrom: nil, usb: nil, shared_dir: nil)
       qmp_port = self.get_free_port(4000, 4099)
       ssh_port = self.get_free_port(2000, 2099)
       vnc_port = self.get_free_port(5900, 5999)
@@ -142,6 +147,14 @@ module Susi
       cmd << "-hda #{File.expand_path(disk)}.qcow2"
       cmd << "-daemonize"
       cmd << "-enable-kvm"
+
+      # Add shared directory passthrough if specified
+      if shared_dir
+        Susi::debug "Adding shared directory #{shared_dir}"
+        shared_dir_path = File.expand_path(shared_dir)
+        cmd << "-fsdev local,security_model=passthrough,id=fsdev0,path=#{shared_dir_path}"
+        cmd << "-device virtio-9p-pci,fsdev=fsdev0,mount_tag=susi_virtio_share"
+      end
 
       # control interfaces
       cmd << "-qmp tcp:localhost:#{qmp_port},server,nowait"
@@ -182,6 +195,9 @@ module Susi
           # get local device name or IP
           ip = vm.ip
 
+          shared_dir = line.match(/-fsdev.*path=([^\s,]+)/)
+          shared_dir_info = shared_dir ? "  - Shared Directory: #{shared_dir[1]}" : ""
+
           puts <<-EOF
 VM: #{n}
   - Disk: #{vm.disk}
@@ -190,6 +206,7 @@ VM: #{n}
   - Screen: http://#{ip}:#{vm.vnc_www_port}/
   - Websocket: ws://#{ip}:#{vm.vnc_websocket_port}/
   - SSH: ssh -p #{vm.ssh_port} dabo@#{ip}
+#{shared_dir_info}
 EOF
         end
       end

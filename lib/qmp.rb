@@ -11,6 +11,8 @@ module Susi
       @port = port
       @server = TCPSocket.new('localhost', @port)
 
+      Susi::debug "QMP connected"
+
       resp = JSON.parse(@server.gets)
       unless resp["QMP"]["version"]["qemu"]["major"] == 9
         server.close

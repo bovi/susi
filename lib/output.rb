@@ -1,6 +1,4 @@
 module Susi
-  DEBUG = true
-
   def self.debug(msg)
     puts msg if DEBUG
   end
