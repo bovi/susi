@@ -2,86 +2,10 @@
 
 require 'susi'
 require 'version'
+require 'optparse'
 
-if ARGV[0] == 'init'
-  Susi::init
-
-elsif ARGV[0] == 'start'
-  Susi::start
-
-elsif ARGV[0] == 'rm'
-  # quit vm and remove disk
-  Susi::VM.quit(Susi::current_vm_name)
-  Susi::rm
-
-# create a disk
-elsif ARGV[0] == 'disk' && ARGV[1] == 'create' &&
-    ARGV[2].is_a?(String) && ARGV[3].to_i > 0
-  disk_name = ARGV[2]
-  disk_size = ARGV[3].to_i
-  Susi::Disk.create(disk_name, disk_size)
-
-# clone a disk
-elsif ARGV[0] == 'disk' && ARGV[1] == 'clone' &&
-    ARGV[2].is_a?(String) && ARGV[3].is_a?(String) &&
-    File.exist?("#{ARGV[2]}.qcow2") &&
-    !File.exist?("#{ARGV[3]}.qcow2")
-  disk_name = ARGV[2]
-  new_disk_name = ARGV[3]
-  Susi::Disk.clone(disk_name, new_disk_name)
-
-# start VM
-elsif ARGV[0] == 'vm' && ARGV[1] == 'start' &&
-    ARGV[2].is_a?(String) && File.exist?("#{ARGV[2]}.qcow2")
-  vm_name = ARGV[2]
-  Susi::VM.start(vm_name, vm_name)
-
-# install VM
-elsif ARGV[0] == 'vm' && ARGV[1] == 'install' &&
-  ARGV[2].is_a?(String) && File.exist?("#{ARGV[2]}.qcow2") &&
-    ARGV[3].is_a?(String) && File.exist?(ARGV[3])
-  vm_name = ARGV[2]
-  iso = ARGV[3]
-  Susi::VM.install(vm_name, vm_name, iso)
-
-# quit VM
-elsif ARGV[0] == 'vm' && ARGV[1] == 'quit' &&
-    ARGV[2].is_a?(String)
-  vm_name = ARGV[2]
-  Susi::VM.quit(vm_name)
-
-# list VMs
-elsif ARGV[0] == 'vm' && ARGV[1] == 'ls'
-  Susi::VM.ls
-elsif ARGV[0] == 'ls'
-  Susi::VM.ls
-
-# open VNC
-elsif ARGV[0] == 'vnc'
-  if ARGV[1].is_a?(String)
-    vm_name = ARGV[1]
-    Susi::VNC.open(vm_name)
-  else
-    Susi::VNC.open(Susi::current_vm_name)
-  end
-
-# open SSH
-elsif ARGV[0] == 'ssh'
-  if ARGV[1].is_a?(String)
-    vm_name = ARGV[1]
-    Susi::SSH.open(vm_name)
-  else
-    Susi::SSH.open(Susi::current_vm_name)
-  end
-
-# download Debian netinstall ISO
-elsif ARGV[0] == 'iso' && ARGV[1] == 'download'
-  Susi::Disk.download_debian_netinstall
-
-else
+def print_usage
   puts <<-EOF
-Invalid command
-
 Usage: 
   Init susi setting
   susi init
@@ -127,8 +51,116 @@ susi (v#{Susi::VERSION}) - Simple User System Interface
 author:  Daniel Bovensiepen
 contact: oss@bovi.li
 www:     https://github.com/bovi/susi
-EOF
+  EOF
+  exit 1
+end
 
-exit 1
+options = {}
+subcommands = %w[init start rm disk vm ls vnc ssh iso]
 
+global = OptionParser.new do |opts|
+  opts.banner = "Usage: susi [options] [subcommand [options]]"
+  opts.on("-h", "--help", "Prints this help") do
+    puts opts
+    print_usage
+  end
+end
+
+subcommand = ARGV.shift
+global.order!
+print_usage if subcommand.nil?
+
+case subcommand
+when "init"
+  Susi::init
+when "start"
+  Susi::start
+when "rm"
+  Susi::VM.quit(Susi::current_vm_name)
+  Susi::rm
+when "disk"
+  disk_command = ARGV.shift
+  case disk_command
+  when "create"
+    disk_name, disk_size = ARGV
+    if disk_name && disk_size.to_i > 0
+      Susi::Disk.create(disk_name, disk_size.to_i)
+    else
+      puts "Invalid disk create command"
+      print_usage
+    end
+  when "clone"
+    disk_name, new_disk_name = ARGV
+    if disk_name && new_disk_name &&
+        File.exist?("#{disk_name}.qcow2") &&
+        !File.exist?("#{new_disk_name}.qcow2")
+      Susi::Disk.clone(disk_name, new_disk_name)
+    else
+      puts "Invalid disk clone command"
+      print_usage
+    end
+  else
+    puts "Invalid disk command"
+    print_usage
+  end
+when "vm"
+  vm_command = ARGV.shift
+  case vm_command
+  when "start"
+    vm_name = ARGV.shift
+    if vm_name && File.exist?("#{vm_name}.qcow2")
+      Susi::VM.start(vm_name, vm_name)
+    else
+      puts "Invalid vm start command"
+      print_usage
+    end
+  when "install"
+    vm_name, iso = ARGV
+    if vm_name && File.exist?("#{vm_name}.qcow2") && iso && File.exist?(iso)
+      Susi::VM.install(vm_name, vm_name, iso)
+    else
+      puts "Invalid vm install command"
+      print_usage
+    end
+  when "quit"
+    vm_name = ARGV.shift
+    if vm_name
+      Susi::VM.quit(vm_name)
+    else
+      puts "Invalid vm quit command"
+      print_usage
+    end
+  when "ls"
+    Susi::VM.ls
+  else
+    puts "Invalid vm command"
+    print_usage
+  end
+when "ls"
+  Susi::VM.ls
+when "vnc"
+  vm_name = ARGV.shift
+  if vm_name
+    Susi::VNC.open(vm_name)
+  else
+    Susi::VNC.open(Susi::current_vm_name)
+  end
+when "ssh"
+  vm_name = ARGV.shift
+  if vm_name
+    Susi::SSH.open(vm_name)
+  else
+    Susi::SSH.open(Susi::current_vm_name)
+  end
+when "iso"
+  iso_command = ARGV.shift
+  if iso_command == "download"
+    Susi::Disk.download_debian_netinstall
+  else
+    puts "Invalid iso command"
+    print_usage
+  end
+else
+  puts "Invalid command"
+  print_usage
 end
