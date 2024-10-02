@@ -57,7 +57,6 @@ module Susi
 
     def disk
       d = ''
-      #QMP.new(@qmp_port) { |q| d = q.execute("query-block")[0]['inserted']['file'] }
       d = @qmp.execute("query-block")[0]['inserted']['file']
       d
     end
@@ -65,7 +64,6 @@ module Susi
     def vnc_port
       @vnc_port ||= begin
         port = -1
-        #QMP.new(@qmp_port) { |q| port = q.execute("query-vnc")['service'] }
         port = @qmp.execute("query-vnc")['service']
         port.to_i
       end
@@ -82,16 +80,13 @@ module Susi
     def ssh_port
       @ssh_port ||= begin
         port = -1
-        #QMP.new(@qmp_port) do |q|
-          #resp = q.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
-          resp = @qmp.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
-          resp = resp.split("\r\n")[2].split
-          src_port = resp[3].to_i
-          dst_port = resp[5].to_i
-          if dst_port == 22
-            port = src_port
-          end
-        #end
+        resp = @qmp.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
+        resp = resp.split("\r\n")[2].split
+        src_port = resp[3].to_i
+        dst_port = resp[5].to_i
+        if dst_port == 22
+          port = src_port
+        end
         port.to_i
       end
     end
@@ -127,14 +122,15 @@ module Susi
       raise "No free port found in range #{start_port}..#{end_port}"
     end
 
-    def self.start(name, disk, cdrom: nil, usb: nil, shared_dir: nil)
+    def self.start(name, disk, cdrom: nil, usb: nil,
+                    shared_dir: nil, cpu_count: 1, memory: 2048)
       qmp_port = self.get_free_port(4000, 4099)
       ssh_port = self.get_free_port(2000, 2099)
       vnc_port = self.get_free_port(5900, 5999)
       vnc_www_port = vnc_port - 100
       vnc_websocket_port = vnc_port - 200
 
-      Susi::debug "Starting VM #{name} with QMP on port #{qmp_port}, VNC on port #{vnc_port}, SSH on port #{ssh_port}"
+      Susi::debug "Starting VM #{name} with QMP on port #{qmp_port}, VNC on port #{vnc_port}, SSH on port #{ssh_port}, CPU count: #{cpu_count}"
 
       cmd = []
 
@@ -143,7 +139,8 @@ module Susi
 
       # general setup
       cmd << "-name #{name}"
-      cmd << "-m 2048"
+      cmd << "-m #{memory}"
+      cmd << "-smp #{cpu_count}"
       cmd << "-hda #{File.expand_path(disk)}.qcow2"
       cmd << "-daemonize"
       cmd << "-enable-kvm"

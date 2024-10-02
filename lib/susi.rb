@@ -52,6 +52,9 @@ YAML
     name = config['name'] || Dir.pwd.split('/').last
     usb = config['usb']
     shared_dir = config['shared_dir']
+    dpkg = config['dpkg']
+    cpu_count = config['cpu_count'] || 1
+    memory = config['memory'] || 2048
     disk_template = "#{TEMPLATE_DIR}/#{config['template']}"
 
     # check if vm is already running
@@ -65,15 +68,23 @@ YAML
       Susi::debug "Disk not found, cloning..."
       Disk.clone(disk_template, disk_name)
 
-      VM.start(name, disk_name, usb: usb, shared_dir: shared_dir)
+      VM.start(name, disk_name, usb: usb,
+                shared_dir: shared_dir, cpu_count: cpu_count,
+                memory: memory)
 
       # SSH into VM and set hostname
       SSH.set_hostname(name)
       if shared_dir
         SSH.setup_virtio_filesystem(name)
       end
+
+      if dpkg
+        SSH.install_dpkg(name, dpkg)
+      end
     else
-      VM.start(name, disk_name, usb: usb, shared_dir: shared_dir)
+      VM.start(name, disk_name, usb: usb,
+                shared_dir: shared_dir, cpu_count: cpu_count,
+                memory: memory)
     end
   end
 

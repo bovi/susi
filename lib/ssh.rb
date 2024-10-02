@@ -53,6 +53,22 @@ module Susi
             Susi::debug "Virtio share mounted successfully: #{output}"
           end
           Susi::debug "Virtio filesystem setup complete."
+
+          output = ssh.exec!("ln -s /mnt/susi /home/dabo/susi")
+          Susi::debug "Creating symlink: #{output}"
+        end
+      end
+    end
+
+    def self.install_dpkg(name, dpkg)
+      VM.new(name) do |vm|
+        Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')]) do |ssh|
+          Susi::debug "Installing dpkg..."
+          output = ssh.exec!("sudo apt-get update")
+          Susi::debug "Updating package list: #{output}"
+
+          output = ssh.exec!("sudo apt-get install -y #{dpkg.join(' ')}")
+          Susi::debug "Installing dpkg: #{output}"
         end
       end
     end
