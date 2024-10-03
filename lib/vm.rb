@@ -141,7 +141,7 @@ module Susi
       cmd << "-name #{name}"
       cmd << "-m #{memory}"
       cmd << "-smp #{cpu_count}"
-      cmd << "-hda #{File.expand_path(disk)}.qcow2"
+      cmd << "-drive file=#{File.expand_path(disk)}.qcow2,format=qcow2,index=0,media=disk"
       cmd << "-daemonize"
       cmd << "-enable-kvm"
 
@@ -162,7 +162,8 @@ module Susi
 
       # cdrom for installation
       if cdrom
-        cmd << "-cdrom #{cdrom}"
+        #cmd << "-cdrom #{cdrom}"
+        cmd << "-drive file=#{File.expand_path(cdrom)},format=raw,index=1,media=cdrom"
       end
 
       if usb
