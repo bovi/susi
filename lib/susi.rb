@@ -81,6 +81,9 @@ YAML
       if dpkg
         SSH.install_dpkg(name, dpkg)
       end
+
+      # Reboot the VM
+      SSH.reboot(name)
     else
       VM.start(name, disk_name, usb: usb,
                 shared_dir: shared_dir, cpu_count: cpu_count,

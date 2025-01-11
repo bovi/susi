@@ -31,7 +31,7 @@ module Susi
         Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')]) do |ssh|
           Susi::debug "Setting up virtio filesystem..."
 
-          output = ssh.exec!("echo 'susi_virtio_share /mnt/susi 9p trans=virtio,version=9p2000.L,rw 0 0' | sudo tee -a /etc/fstab")
+          output = ssh.exec!("echo 'susi_virtio_share /mnt/susi 9p trans=virtio,version=9p2000.L,msize=512000,rw 0 0' | sudo tee -a /etc/fstab")
           Susi::debug "Adding virtio share to /etc/fstab: #{output}"
 
           output = ssh.exec!("sudo mkdir -p /mnt/susi")
@@ -69,6 +69,16 @@ module Susi
 
           output = ssh.exec!("sudo apt-get install -y #{dpkg.join(' ')}")
           Susi::debug "Installing dpkg: #{output}"
+        end
+      end
+    end
+
+    def self.reboot(name)
+      VM.new(name) do |vm|
+        Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')]) do |ssh|
+          Susi::debug "Rebooting the VM..."
+          output = ssh.exec!("sudo reboot")
+          Susi::debug "Reboot command executed: #{output}"
         end
       end
     end
