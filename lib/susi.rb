@@ -110,6 +110,44 @@ YAML
       File.delete(disk_name)
     end
   end
+
+  def self.add_usb
+    if !File.exist?(CONFIG_FILE)
+      raise "susi is not initialized"
+    end
+
+    config = YAML.load_file(CONFIG_FILE)
+    usb = config['usb'] || []
+
+    Susi::info "Starting USB Device assistant..."
+    Susi::info "I'm helping you to add a new USB device to the VM"
+    Susi::info "Please ensure that the new USB device is not connect yet!"
+    devices = []
+    `lsusb`.each_line do |dev|
+      next unless dev =~ /^Bus/
+      m = dev.split /\s/
+      m = m[5]
+      next unless m =~ /^[a-f0-9]{4,4}\:[a-f0-9]{4,4}$/
+      Susi::debug "Found #{m}"
+      devices << m
+    end
+    Susi::info "Connect the new USB device... (press ENTER when ready)"
+    gets
+    `lsusb`.each_line do |dev|
+      next unless dev =~ /^Bus/
+      m = dev.split /\s/
+      m = m[5]
+      next unless m =~ /^[a-f0-9]{4,4}\:[a-f0-9]{4,4}$/
+      next if devices.include? m
+      Susi::info "Found new USB device: #{m}"
+      usb << m
+    end
+
+    config['usb'] = usb
+    File.open(CONFIG_FILE, 'w') do |f|
+      f.puts config.to_yaml
+    end
+  end
 end
 
 # perform a test when the script is run

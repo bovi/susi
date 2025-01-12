@@ -26,10 +26,13 @@ module Susi
       Susi::debug ps
       ps.split("\n").each do |line|
         next unless line.match /\-name/
-        m = line.match(/-name ([a-zA-Z0-9\-_\.]+)\s/)
+        puts line
+        m = line.match(/-name\s(.*?)\s/)
+        puts m.inspect
         Susi::debug "match: #{m[1]}"
         n = m[1]
         next unless n == @name
+        n = n.split(/\//).last
         Susi::debug "Found VM #{n}"
 
         m = line.match(/-qmp tcp:localhost:(\d+)/)
@@ -107,6 +110,10 @@ module Susi
 
     def self.install(name, disk, iso)
       self.start(name, disk, cdrom: iso)
+    end
+
+    def self.prepare_update(name, disk)
+      self.start(name, disk)
     end
 
     def self.get_free_port(start_port, end_port)
@@ -187,8 +194,9 @@ module Susi
         next unless line.match /\-name/
 
         # get VM access
-        m = line.match(/-name (\w+)/)
+        m = line.match(/-name\s(.*?)\s/)
         n = m[1]
+        n = n.split('/').last
         VM.new(n) do |vm|
           # get local device name or IP
           ip = vm.ip

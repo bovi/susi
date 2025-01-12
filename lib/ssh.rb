@@ -70,6 +70,15 @@ module Susi
       end
     end
 
+    def self.update(name)
+      login_w_pw(name, 'dabo') do |vm, ssh|
+        Susi::debug "update VM via apt"
+        output = ssh.exec!("sudo apt update -y")
+        output = ssh.exec!("sudo apt upgrade -y")
+        output = ssh.exec!("sudo shutdown -h now")
+      end
+    end
+
     def self.install_dpkg(name, dpkg)
       login(name) do |vm, ssh|
         Susi::debug "Installing dpkg..."
@@ -92,6 +101,15 @@ module Susi
       VM.new(name) do |vm|
         Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')]) do |ssh|
           Susi::debug "Logged into VM #{name}"
+          block.call(vm, ssh)
+        end
+      end
+    end
+
+    def self.login_w_pw(name, pass, &block)
+      VM.new(name) do |vm|
+        Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, password: pass) do |ssh|
+          Susi::debug "Logged into VM #{name} via password"
           block.call(vm, ssh)
         end
       end

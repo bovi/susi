@@ -51,6 +51,9 @@ Usage:
   susi ssh
   susi ssh <vm_name>
 
+  Add USB Device
+  susi usb
+
   Download Debian netinstall ISO
   susi iso download
 
@@ -135,6 +138,16 @@ when "vm"
       Susi::info "Invalid vm install command"
       print_usage
     end
+  when "update"
+    vm_name = ARGV.shift
+    puts vm_name
+    if vm_name && File.exist?("#{vm_name}.qcow2")
+      Susi::VM.prepare_update(vm_name, vm_name)
+      Susi::SSH.update(vm_name)
+    else
+      Susi::info "Invalid vm update command"
+      print_usage
+    end
   when "quit"
     vm_name = ARGV.shift
     if vm_name
@@ -173,6 +186,8 @@ when "iso"
     Susi::info "Invalid iso command"
     print_usage
   end
+when "usb"
+  Susi::add_usb
 else
   Susi::info "Invalid command"
   print_usage
