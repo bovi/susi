@@ -78,6 +78,9 @@ YAML
         SSH.setup_virtio_filesystem(name)
       end
 
+      SSH.apt_update(name)
+      SSH.apt_upgrade(name)
+
       if dpkg
         SSH.install_dpkg(name, dpkg)
       end
