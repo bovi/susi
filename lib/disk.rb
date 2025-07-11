@@ -2,7 +2,7 @@ require_relative 'output'
 
 module Susi
   class Disk
-    DEFAULT_IMG = "debian-12.7.0-amd64-netinst.iso"
+    DEFAULT_IMG = "debian-12.11.0-amd64-netinst.iso"
 
     def self.download_debian_netinstall
       # Check if ~/.susi directory exists, if not create it
@@ -21,6 +21,7 @@ module Susi
       Susi::debug "Downloading Debian netinstall ISO..."
       
       begin
+        Susi::debug "url: #{url}"
         URI.open(url) do |remote_file|
           File.open(output_path, "wb") do |local_file|
             local_file.write(remote_file.read)

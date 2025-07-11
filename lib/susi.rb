@@ -9,6 +9,7 @@ require_relative 'output'
 
 require 'yaml'
 require 'securerandom'
+require 'open-uri'
 
 module Susi
   CONFIG_FILE = ".susi.yml"
@@ -51,7 +52,7 @@ YAML
     id = config['id']
     name = config['name'] || Dir.pwd.split('/').last
     usb = config['usb']
-    shared_dir = config['shared_dir']
+    shared_dir = config['shared_dir'] || '.'
     dpkg = config['dpkg']
     cpu_count = config['cpu_count'] || 1
     memory = config['memory'] || 2048
@@ -74,9 +75,7 @@ YAML
 
       # SSH into VM and set hostname
       SSH.set_hostname(name)
-      if shared_dir
-        SSH.setup_virtio_filesystem(name)
-      end
+      SSH.setup_virtio_filesystem(name)
 
       SSH.apt_update(name)
       SSH.apt_upgrade(name)

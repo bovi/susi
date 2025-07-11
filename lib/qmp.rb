@@ -14,8 +14,8 @@ module Susi
       Susi::debug "QMP connected"
 
       resp = JSON.parse(@server.gets)
-      unless resp["QMP"]["version"]["qemu"]["major"] == 9
-        server.close
+      unless resp["QMP"]["version"]["qemu"]["major"] >= 9
+        @server.close
         raise "QEMU version not supported"
       end
 
@@ -23,7 +23,7 @@ module Susi
       @server.puts('{"execute":"qmp_capabilities"}')
       resp = JSON.parse(@server.gets)
       unless resp["return"] == {}
-        server.close
+        @server.close
         raise "Failed to connect to QMP socket"
       end
 

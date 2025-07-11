@@ -84,7 +84,7 @@ module Susi
       @ssh_port ||= begin
         port = -1
         resp = @qmp.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
-        resp = resp.split("\r\n")[2].split
+        resp = resp.lines.grep(/HOST_FORWARD/).first.split
         src_port = resp[3].to_i
         dst_port = resp[5].to_i
         if dst_port == 22
