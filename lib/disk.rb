@@ -2,7 +2,7 @@ require_relative 'output'
 
 module Susi
   class Disk
-    DEFAULT_IMG = "debian-12.11.0-amd64-netinst.iso"
+    DEFAULT_IMG = "debian-13.2.0-amd64-netinst.iso"
 
     def self.download_debian_netinstall
       # Check if ~/.susi directory exists, if not create it
