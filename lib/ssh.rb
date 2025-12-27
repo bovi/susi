@@ -17,7 +17,7 @@ module Susi
         output = ssh.exec!("sudo hostnamectl set-hostname #{name}")
         Susi::debug "Setting hostname: #{output}"
 
-        output = ssh.exec!("sudo sed -i 's/susi/#{name}/' /etc/hosts")
+        output = ssh.exec!("sudo sed -i 's/susi/#{name}/g' /etc/hosts")
         Susi::debug "Updating /etc/hosts: #{output}"
 
         Susi::debug "Hostname setup complete."
