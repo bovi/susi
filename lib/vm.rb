@@ -151,6 +151,7 @@ module Susi
       cmd << "-drive file=#{File.expand_path(disk)}.qcow2,format=qcow2,index=0,media=disk"
       cmd << "-daemonize"
       cmd << "-enable-kvm"
+      cmd << "-audiodev none,id=noaudio"
 
       # Add shared directory passthrough if specified
       if shared_dir
