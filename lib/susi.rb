@@ -37,6 +37,8 @@ module Susi
         file.puts <<-YAML
 id: #{id}
 template: DEFAULT
+init:
+  - date
 YAML
       end
     end
@@ -82,6 +84,19 @@ YAML
 
       if dpkg
         SSH.install_dpkg(name, dpkg)
+      end
+
+      init_commands = config['init']
+      if init_commands && init_commands.is_a?(Array)
+        Susi::info "Executing init commands from .susi.yml..."
+        SSH.login(name) do |vm, ssh|
+          init_commands.each do |command|
+            Susi::debug "Executing: #{command}"
+            output = ssh.exec!(command)
+            Susi::debug "Output: #{output}"
+          end
+        end
+        Susi::info "Init commands execution complete."
       end
 
       # Reboot the VM
