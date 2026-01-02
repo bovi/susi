@@ -26,9 +26,9 @@ module Susi
       Susi::debug ps
       ps.split("\n").each do |line|
         next unless line.match /\-name/
-        puts line
+        Susi::debug line
         m = line.match(/-name\s(.*?)\s/)
-        puts m.inspect
+        Susi::debug m.inspect
         Susi::debug "match: #{m[1]}"
         n = m[1]
         next unless n == @name
@@ -104,9 +104,9 @@ module Susi
         resp.each do |fwport|
           fwport = fwport.split
           src_port = fwport[3].to_i
-          puts "src_port: #{src_port}"
+          Susi::debug "src_port: #{src_port}"
           dst_port = fwport[5].to_i
-          puts "dst: #{dst_port}"
+          Susi::debug "dst: #{dst_port}"
           next if dst_port == 22
           _fwports << { src_port: src_port, dst_port: dst_port }
         end
@@ -230,7 +230,12 @@ module Susi
           shared_dir = line.match(/-fsdev.*path=([^\s,]+)/)
           shared_dir_info = shared_dir ? "  - Shared Directory: #{shared_dir[1]}" : ""
 
-          forwarded_ports = vm.forwarded_ports.map {|p| "    - #{ip}:#{p[:src_port]} -> :#{p[:dst_port]}"}.join("\n")
+          if vm.forwarded_ports.size > 0
+            forwarded_ports = vm.forwarded_ports.map {|p| "    - #{ip}:#{p[:src_port]} -> :#{p[:dst_port]}"}.join("\n")
+            forwarded_ports = "  - Forwarded Ports:\n#{forwarded_ports}"
+          else
+            forwarded_ports = ""
+          end
 
           puts <<-EOF
 VM: #{n}
@@ -240,9 +245,8 @@ VM: #{n}
   - Screen: http://#{ip}:#{vm.vnc_www_port}/
   - Websocket: ws://#{ip}:#{vm.vnc_websocket_port}/
   - SSH: ssh -p #{vm.ssh_port} dabo@#{ip}
-  - Forwarded Ports:
-#{forwarded_ports}
 #{shared_dir_info}
+#{forwarded_ports}
 EOF
         end
       end

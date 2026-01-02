@@ -1,9 +1,15 @@
 #!/usr/bin/env ruby
 
 if File.exist?(File.expand_path('../susi.gemspec', __dir__))
-  puts "Running in development mode"
-  module Susi
-    DEBUG = true
+  unless File.exist?(File.expand_path('~/.nodebug'))
+    puts "Running in development mode"
+    module Susi
+      DEBUG = true
+    end
+  else
+    module Susi
+      DEBUG = false
+    end
   end
   $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 end
@@ -144,7 +150,7 @@ when "vm"
     end
   when "update"
     vm_name = ARGV.shift
-    puts vm_name
+    Susi::debug vm_name
     if vm_name && File.exist?("#{vm_name}.qcow2")
       Susi::VM.prepare_update(vm_name, vm_name)
       Susi::SSH.update(vm_name)
