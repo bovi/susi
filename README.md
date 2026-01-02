@@ -55,6 +55,23 @@ Here's how to use susi:
 
    This command uses the default QCOW2 image located at `~/.susi/templates/default.qcow2`.
 
+### Port forwarding
+
+Add `forward_ports` (or `ports`) to `.susi.yml` to expose guest ports on `0.0.0.0` of the host via QEMU `hostfwd`:
+
+```yaml
+forward_ports:
+  - 3000           # host 3000 -> guest 3000
+```
+
+Only TCP is supported; SSH (guest 22) is forwarded automatically and does not need to be listed.
+
+Note: susi reserves and binds local host ports in these ranges for its own control services:
+- QMP: 4000–4099
+- SSH: 2000–2099
+- VNC web: 5800–5899
+- VNC: 5900–5999
+
 3. Access the VM:
    - Via SSH: `susi ssh`
    - Via VNC: `susi vnc`

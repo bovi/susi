@@ -93,7 +93,12 @@ module Susi
     def self.reboot(name)
       login(name) do |vm, ssh|
         Susi::debug "Rebooting the VM..."
-        output = ssh.exec!("sudo reboot")
+        begin
+          ssh.exec!("sudo reboot")
+        rescue IOError, Net::SSH::Disconnect, Net::SSH::ConnectionTimeout, Net::SSH::Transport::StreamError, Net::SSH::Transport::SessionKeyExpired => e
+          # The SSH transport may tear down while the guest reboots; log and continue.
+          Susi::debug "SSH connection closed during reboot (expected): #{e.class} - #{e.message}"
+        end
       end
     end
 

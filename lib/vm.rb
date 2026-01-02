@@ -84,6 +84,7 @@ module Susi
       @ssh_port ||= begin
         port = -1
         resp = @qmp.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
+        Susi::debug resp.to_s
         resp = resp.lines.grep(/HOST_FORWARD/).first.split
         src_port = resp[3].to_i
         dst_port = resp[5].to_i
@@ -91,6 +92,25 @@ module Susi
           port = src_port
         end
         port.to_i
+      end
+    end
+
+    def forwarded_ports
+      @forwarded_ports ||= begin
+        _fwports = []
+        resp = @qmp.execute_with_args("human-monitor-command", {"command-line" => "info usernet"})
+        Susi::debug resp.to_s
+        resp = resp.lines.grep(/HOST_FORWARD/)
+        resp.each do |fwport|
+          fwport = fwport.split
+          src_port = fwport[3].to_i
+          puts "src_port: #{src_port}"
+          dst_port = fwport[5].to_i
+          puts "dst: #{dst_port}"
+          next if dst_port == 22
+          _fwports << { src_port: src_port, dst_port: dst_port }
+        end
+        _fwports
       end
     end
 
@@ -130,7 +150,8 @@ module Susi
     end
 
     def self.start(name, disk, cdrom: nil, usb: nil,
-                    shared_dir: nil, cpu_count: 1, memory: 2048)
+                    shared_dir: nil, cpu_count: 1, memory: 2048,
+                    forwarded_ports: [])
       qmp_port = self.get_free_port(4000, 4099)
       ssh_port = self.get_free_port(2000, 2099)
       vnc_port = self.get_free_port(5900, 5999)
@@ -166,7 +187,11 @@ module Susi
       cmd << "-vnc :#{vnc_port-5900},websocket=on"
 
       # Network capabilities
-      cmd << "-nic user,model=virtio-net-pci,hostfwd=tcp::#{ssh_port}-:22"
+      fw_ports = ["#{ssh_port}-:22"]
+      forwarded_ports.each do |x|
+        fw_ports << "#{x}-:#{x}"
+      end
+      cmd << "-nic user,model=virtio-net-pci,#{fw_ports.map {|p| "hostfwd=tcp::#{p}"}.join(',')}"
 
       # cdrom for installation
       if cdrom
@@ -205,6 +230,8 @@ module Susi
           shared_dir = line.match(/-fsdev.*path=([^\s,]+)/)
           shared_dir_info = shared_dir ? "  - Shared Directory: #{shared_dir[1]}" : ""
 
+          forwarded_ports = vm.forwarded_ports.map {|p| "    - #{ip}:#{p[:src_port]} -> :#{p[:dst_port]}"}.join("\n")
+
           puts <<-EOF
 VM: #{n}
   - Disk: #{vm.disk}
@@ -213,6 +240,8 @@ VM: #{n}
   - Screen: http://#{ip}:#{vm.vnc_www_port}/
   - Websocket: ws://#{ip}:#{vm.vnc_websocket_port}/
   - SSH: ssh -p #{vm.ssh_port} dabo@#{ip}
+  - Forwarded Ports:
+#{forwarded_ports}
 #{shared_dir_info}
 EOF
         end

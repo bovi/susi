@@ -58,6 +58,7 @@ YAML
     dpkg = config['dpkg']
     cpu_count = config['cpu_count'] || 1
     memory = config['memory'] || 2048
+    forward_ports = config['forward_ports'] || config['ports'] || []
     disk_template = "#{TEMPLATE_DIR}/#{config['template']}"
 
     # check if vm is already running
@@ -73,7 +74,7 @@ YAML
 
       VM.start(name, disk_name, usb: usb,
                 shared_dir: shared_dir, cpu_count: cpu_count,
-                memory: memory)
+                memory: memory, forwarded_ports: forward_ports)
 
       # SSH into VM and set hostname
       SSH.set_hostname(name)
@@ -104,7 +105,7 @@ YAML
     else
       VM.start(name, disk_name, usb: usb,
                 shared_dir: shared_dir, cpu_count: cpu_count,
-                memory: memory)
+                memory: memory, forwarded_ports: forward_ports)
     end
   end
 
