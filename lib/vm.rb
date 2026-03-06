@@ -152,6 +152,7 @@ module Susi
     def self.start(name, disk, cdrom: nil, usb: nil,
                     shared_dir: nil, cpu_count: 1, memory: 2048,
                     forwarded_ports: [])
+      Susi.check_command("qemu-system-x86_64")
       qmp_port = self.get_free_port(4000, 4099)
       ssh_port = self.get_free_port(2000, 2099)
       vnc_port = self.get_free_port(5900, 5999)

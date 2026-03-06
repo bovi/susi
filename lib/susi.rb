@@ -134,6 +134,7 @@ YAML
     config = YAML.load_file(CONFIG_FILE)
     usb = config['usb'] || []
 
+    Susi.check_command("lsusb")
     Susi::info "Starting USB Device assistant..."
     Susi::info "I'm helping you to add a new USB device to the VM"
     Susi::info "Please ensure that the new USB device is not connect yet!"

@@ -38,10 +38,12 @@ module Susi
     end
 
     def self.create(name, size)
+      Susi.check_command("qemu-img")
       system("qemu-img create -f qcow2 #{name}.qcow2 #{size}G > /dev/null 2>&1")
     end
 
     def self.clone(name, clone)
+      Susi.check_command("qemu-img")
       system("qemu-img create -f qcow2 -F qcow2 -b #{name}.qcow2 #{clone}.qcow2 > /dev/null 2>&1")
     end
   end

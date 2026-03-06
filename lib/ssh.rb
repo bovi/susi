@@ -6,6 +6,7 @@ require_relative 'output'
 module Susi
   class SSH
     def self.open(name)
+      Susi.check_command("ssh")
       vm = VM.new(name)
       exec "ssh -p #{vm.ssh_port} dabo@#{vm.ip}"
     end
