@@ -87,6 +87,13 @@ YAML
         SSH.install_dpkg(name, dpkg)
       end
 
+      files = config['files']
+      if files && files.is_a?(Array)
+        Susi::info "Copying files to VM..."
+        SSH.copy_files(name, files)
+        Susi::info "File copying complete."
+      end
+
       init_commands = config['init']
       if init_commands && init_commands.is_a?(Array)
         Susi::info "Executing init commands from .susi.yml..."

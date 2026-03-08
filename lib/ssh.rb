@@ -91,6 +91,28 @@ module Susi
       end
     end
 
+    def self.copy_files(name, files)
+      Susi.check_command("scp")
+      VM.new(name) do |vm|
+        files.each do |file|
+          src = File.expand_path(file['src'])
+          dest = file['dest']
+
+          Susi::debug "Copying #{src} to #{dest}..."
+
+          # Create destination parent directory
+          dest_dir = File.dirname(dest)
+          Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')]) do |ssh|
+            ssh.exec!("mkdir -p #{dest_dir}")
+          end
+
+          # Copy file via scp
+          system("scp -P #{vm.ssh_port} -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no #{src} dabo@#{vm.ip}:#{dest}")
+          Susi::debug "Copied #{src} to #{dest}"
+        end
+      end
+    end
+
     def self.reboot(name)
       login(name) do |vm, ssh|
         Susi::debug "Rebooting the VM..."
