@@ -169,6 +169,7 @@ module Susi
       # general setup
       cmd << "-name #{name}"
       cmd << "-m #{memory}"
+      cmd << "-cpu host"
       cmd << "-smp #{cpu_count}"
       cmd << "-drive file=#{File.expand_path(disk)}.qcow2,format=qcow2,index=0,media=disk"
       cmd << "-daemonize"
