@@ -8,7 +8,7 @@ module Susi
     def self.open(name)
       Susi.check_command("ssh")
       vm = VM.new(name)
-      exec "ssh -p #{vm.ssh_port} dabo@#{vm.ip}"
+      exec "ssh -p #{vm.ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR dabo@#{vm.ip}"
     end
 
     def self.set_hostname(name)
@@ -102,7 +102,7 @@ module Susi
 
           # Create destination parent directory
           dest_dir = File.dirname(dest)
-          Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')]) do |ssh|
+          Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')], verify_host_key: :never) do |ssh|
             ssh.exec!("mkdir -p #{dest_dir}")
           end
 
@@ -127,7 +127,7 @@ module Susi
 
     def self.login(name, &block)
       VM.new(name) do |vm|
-        Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')]) do |ssh|
+        Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, keys: [File.expand_path('~/.ssh/id_ed25519')], verify_host_key: :never) do |ssh|
           Susi::debug "Logged into VM #{name}"
           block.call(vm, ssh)
         end
@@ -136,7 +136,7 @@ module Susi
 
     def self.login_w_pw(name, pass, &block)
       VM.new(name) do |vm|
-        Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, password: pass) do |ssh|
+        Net::SSH.start(vm.ip, 'dabo', port: vm.ssh_port, password: pass, verify_host_key: :never) do |ssh|
           Susi::debug "Logged into VM #{name} via password"
           block.call(vm, ssh)
         end
